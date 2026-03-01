@@ -12,7 +12,8 @@
 pramana-ts-sdk/
 ├── package.json
 ├── tsconfig.json
-├── tsconfig.build.json
+├── tsconfig.esm.json
+├── tsconfig.cjs.json
 ├── vitest.config.ts
 ├── src/
 │   ├── index.ts                    # Public API barrel export
@@ -62,14 +63,16 @@ pramana-ts-sdk/
 {
   "name": "@pramana/sdk",
   "version": "0.1.0",
-  "description": "TypeScript SDK for the Pramana knowledge graph",
+  "description": "TypeScript/JavaScript SDK for the Pramana knowledge graph",
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
     }
   },
   "files": ["dist"],
@@ -77,7 +80,7 @@ pramana-ts-sdk/
     "node": ">=18"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.esm.json && tsc -p tsconfig.cjs.json && node scripts/fix-cjs-package.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint src/",
@@ -92,7 +95,7 @@ pramana-ts-sdk/
 }
 ```
 
-### tsconfig.json
+### tsconfig.json (base)
 
 ```json
 {
@@ -106,21 +109,25 @@ pramana-ts-sdk/
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "./dist",
-    "rootDir": "./src",
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "bigint": true
+    "rootDir": "./src"
   },
   "include": ["src/**/*"]
 }
 ```
 
+### tsconfig.esm.json / tsconfig.cjs.json
+
+Both extend `tsconfig.json`. The ESM config uses `module: "ESNext"` with `outDir: "./dist/esm"`. The CJS config uses `module: "CommonJS"`, `moduleResolution: "node"`, with `outDir: "./dist/cjs"`. Both exclude test files.
+
+A post-build script (`scripts/fix-cjs-package.mjs`) writes `{"type":"commonjs"}` to `dist/cjs/package.json` and `{"type":"module"}` to `dist/esm/package.json` so Node correctly interprets `.js` files in each directory.
+
 ### Key decisions:
-- **ESM-only** — no CommonJS dual-build
+- **Dual ESM + CJS build** — two tsconfig files (`tsconfig.esm.json`, `tsconfig.cjs.json`) with `scripts/fix-cjs-package.mjs` to write `type` markers into each output directory. No bundler needed — pure `tsc`.
 - **Zero runtime dependencies** for core
 - **Native `bigint`** — no polyfill needed (ES2020+)
 - **Vitest** for testing (fast, ESM-native)
 - **TC39 decorators** for ORM mapping (Stage 3+)
+- **TypeScript/JavaScript dual documentation** — this package serves both TS and JS users; the separate `pramana-js-sdk` repo is superseded
 
 ## 3. GaussianRational (Gauss) Implementation
 

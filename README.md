@@ -1,6 +1,6 @@
 # pramana-ts-sdk
 
-TypeScript SDK for the [Pramana](https://pramana.dev) knowledge graph. Provides exact-arithmetic value types for working with Pramana data in TypeScript.
+TypeScript/JavaScript SDK for the [Pramana](https://pramana.dev) knowledge graph. Provides exact-arithmetic value types for working with Pramana data in TypeScript or JavaScript — one package, dual ESM + CJS builds.
 
 > **Note:** This SDK is being developed as a learning project — TypeScript is a language I'm still picking up for the first time through vibecoding. If you have experience with TypeScript and want to help improve the code quality, contributions and feedback are very welcome! The C# and Python SDKs are more mature by comparison.
 
@@ -14,7 +14,8 @@ TypeScript SDK for the [Pramana](https://pramana.dev) knowledge graph. Provides 
 - **Gauss** — Gaussian rationals (Q[i]) with exact rational arithmetic, formatting, and math utilities
 - **UUID v5** — Deterministic Pramana ID generation matching the canonical Pramana web app
 - **Number theory** — `isPrime`, `gcd`, fraction normalization
-- **137 passing tests** across all modules
+- **161 passing tests** across all modules
+- **Dual ESM + CJS build** — works with `import` and `require()`
 
 ## Installation
 
@@ -24,10 +25,57 @@ npm install @pramana/sdk
 
 Requires Node 18+ (uses native `bigint` and `crypto`).
 
-## Quick Example
+### Importing
 
+**TypeScript / ES Modules:**
 ```typescript
 import { Gint, Gauss, isPrime } from '@pramana/sdk';
+```
+
+**JavaScript (ESM):**
+```javascript
+import { Gint, Gauss, isPrime } from '@pramana/sdk';
+```
+
+**JavaScript (CommonJS):**
+```javascript
+const { Gint, Gauss, isPrime } = require('@pramana/sdk');
+```
+
+## Quick Example
+
+**TypeScript:**
+```typescript
+import { Gint, Gauss, isPrime } from '@pramana/sdk';
+
+// Gaussian integers
+const a = new Gint(3, 4);          // 3 + 4i
+const b = new Gint(1, -2);         // 1 - 2i
+const product = a.mul(b);          // 11 - 2i
+console.log(product.toString());   // "11 - 2i"
+
+// Gaussian rationals (exact arithmetic)
+const half = new Gauss(1, 2, 0, 1);   // 1/2
+const third = new Gauss(1, 3, 0, 1);  // 1/3
+const sum = half.add(third);           // 5/6
+console.log(sum.toString());          // "5/6"
+
+// Pramana identity
+console.log(a.pramanaId);      // deterministic UUID v5
+console.log(a.pramanaLabel);   // "pra:num:3,1,4,1"
+console.log(a.pramanaUrl);     // "https://pramana.dev/entity/..."
+
+// Number theory
+console.log(Gint.isGaussianPrime(new Gint(3, 0)));  // true (3 ≡ 3 mod 4)
+console.log(Gint.isGaussianPrime(new Gint(2, 1)));  // true (norm 5 is prime)
+
+const [gcd, x, y] = Gint.xgcd(new Gint(11, 3), new Gint(1, 8));
+// gcd = alpha*x + beta*y (Bezout's identity)
+```
+
+**JavaScript:**
+```javascript
+const { Gint, Gauss, isPrime } = require('@pramana/sdk');
 
 // Gaussian integers
 const a = new Gint(3, 4);          // 3 + 4i
@@ -85,6 +133,7 @@ const [gcd, x, y] = Gint.xgcd(new Gint(11, 3), new Gint(1, 8));
 
 ## Documentation
 
+- [Getting Started Guide](docs/getting-started.md) — TS/JS side-by-side examples
 - [General SDK Specification](08_SDK_LIBRARY_SPECIFICATION.md) — Cross-language design spec
 - [TypeScript Implementation Guide](IMPLEMENTATION.md) — TypeScript-specific details
 
@@ -98,8 +147,7 @@ The Gauss and Gint implementations across all Pramana SDKs were heavily inspired
 |----------|-----------|---------|
 | C# / .NET | [pramana-dotnet-sdk](https://github.com/Emma-Leonhart/pramana-dotnet-sdk) | `Pramana.SDK` (NuGet) |
 | Python | [pramana-python-sdk](https://github.com/Emma-Leonhart/pramana-python-sdk) | `pramana-sdk` (PyPI) |
-| TypeScript | **pramana-ts-sdk** (this repo) | `@pramana/sdk` (npm) |
-| JavaScript | [pramana-js-sdk](https://github.com/Emma-Leonhart/pramana-js-sdk) | `@pramana/sdk` (npm) |
+| TypeScript / JavaScript | **pramana-ts-sdk** (this repo) | `@pramana/sdk` (npm) |
 | Java | [pramana-java-sdk](https://github.com/Emma-Leonhart/pramana-java-sdk) | `org.pramana:pramana-sdk` (Maven) |
 | Rust | [pramana-rust-sdk](https://github.com/Emma-Leonhart/pramana-rust-sdk) | `pramana-sdk` (crates.io) |
 | Go | [pramana-go-sdk](https://github.com/Emma-Leonhart/pramana-go-sdk) | `github.com/Emma-Leonhart/pramana-go-sdk` |
